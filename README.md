@@ -10,6 +10,13 @@ Different than http://plugins.cordova.io/#/package/org.apache.cordova.media-capt
 
 So far, it only supports Android platform.
 
+Install:
+---------
+
+```bash
+$ cordova plugin add cordova-plugin-audio-recorder-api
+```
+
 How to use:
 ------------
 
