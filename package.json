@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "name": "cordova-plugin-audio-recorder-api",
+  "cordova_name": "AudioRecorderAPI",
+  "description": "This plugin is a Cordova audio recorder plugin which works as API.",
+  "license": "MIT",
+  "platforms": [
+    "android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "cordova": {
+    "id": "cordova-plugin-audio-recorder-api",
+    "platforms": [
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/emj365/cordova-plugin-audio-recorder-api.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android"
+  ],
+  "author": "emj365",
+  "bugs": {
+    "url": "https://github.com/emj365/cordova-plugin-audio-recorder-api/issues"
+  },
+  "homepage": "https://github.com/emj365/cordova-plugin-audio-recorder-api#readme"
+}
