@@ -3,14 +3,13 @@ package com.emj365.plugins;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
-import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.content.Context;
+import java.util.UUID;
 
 public class AudioRecorderAPI extends CordovaPlugin {
 
@@ -20,6 +19,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
+    Context context = cordova.getActivity().getApplicationContext();
     Integer seconds;
     if (args.length() >= 1) {
       seconds = args.getInt(0);
@@ -27,8 +27,8 @@ public class AudioRecorderAPI extends CordovaPlugin {
       seconds = 7;
     }
     if (action.equals("record")) {
-      outputFile = Environment.getExternalStorageDirectory().
-        getAbsolutePath() + "/NSTURecording.m4a";
+      outputFile = context.getDir(Environment.DIRECTORY_MUSIC, Context.MODE_WORLD_READABLE)
+        .getAbsoluteFile() + "/" + UUID.randomUUID().toString();
       myRecorder = new MediaRecorder();
       myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
       myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
