@@ -69,6 +69,30 @@
   NSLog(@"stopped");
 }
 
+- (void)playback:(CDVInvokedUrlCommand*)command {
+  _command = command;
+  [self.commandDelegate runInBackground:^{
+    NSLog(@"recording playback");
+    NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
+    NSError *err;
+    player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&err];
+    player.numberOfLoops = 0;
+    player.delegate = self;
+    [player prepareToPlay];
+    [player play];
+    if (err) {
+      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    }
+    NSLog(@"playing");
+  }];
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+  NSLog(@"audioPlayerDidFinishPlaying");
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+}
+
 - (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag {
   NSURL *url = [NSURL fileURLWithPath: recorderFilePath];
   NSError *err = nil;
