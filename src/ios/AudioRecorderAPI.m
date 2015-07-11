@@ -36,7 +36,7 @@
 
     // Create a new dated file
     NSString *uuid = [[NSUUID UUID] UUIDString];
-    recorderFilePath = [NSString stringWithFormat:@"%@/%@.caf", RECORDINGS_FOLDER, uuid];
+    recorderFilePath = [NSString stringWithFormat:@"%@/%@.m4a", RECORDINGS_FOLDER, uuid];
     NSLog(@"recording file path: %@", recorderFilePath);
 
     NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
