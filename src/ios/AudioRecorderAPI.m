@@ -62,19 +62,24 @@
   }];
 }
 
-- (void)stop:(CDVInvokedUrlCommand*)command
-{
+- (void)stop:(CDVInvokedUrlCommand*)command {
   _command = command;
   NSLog(@"stopRecording");
   [recorder stop];
   NSLog(@"stopped");
 }
 
-- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag
-{
-  NSLog(@"recording saved: %@", recorderFilePath);
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag {
+  NSURL *url = [NSURL fileURLWithPath: recorderFilePath];
+  NSError *err = nil;
+  NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
+  if(!audioData) {
+    NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+  } else {
+    NSLog(@"recording saved: %@", recorderFilePath);
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+  }
 }
 
 @end
