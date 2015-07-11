@@ -20,6 +20,17 @@
     <clobbers target="window.plugins.audioRecorderAPI" />
   </js-module>
 
+  <!-- ios -->
+  <platform name="ios">
+    <config-file target="config.xml" parent="/*">
+      <feature name="AudioRecorderAPI">
+        <param name="ios-package" value="AudioRecorderAPI"/>
+      </feature>
+    </config-file>
+    <header-file src="src/ios/AudioRecorderAPI.h"/>
+    <source-file src="src/ios/AudioRecorderAPI.m"/>
+  </platform>
+
   <!-- android -->
   <platform name="android">
     <config-file target="res/xml/config.xml" parent="/*">
