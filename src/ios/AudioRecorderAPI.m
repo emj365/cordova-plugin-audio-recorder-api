@@ -36,7 +36,7 @@
 
     // Create a new dated file
     NSString *uuid = [[NSUUID UUID] UUIDString];
-    recorderFilePath = [NSString stringWithFormat:@"%@/%@.caf", RECORDINGS_FOLDER, uuid];
+    recorderFilePath = [NSString stringWithFormat:@"%@/%@.m4a", RECORDINGS_FOLDER, uuid];
     NSLog(@"recording file path: %@", recorderFilePath);
 
     NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
@@ -62,19 +62,48 @@
   }];
 }
 
-- (void)stop:(CDVInvokedUrlCommand*)command
-{
+- (void)stop:(CDVInvokedUrlCommand*)command {
   _command = command;
   NSLog(@"stopRecording");
   [recorder stop];
   NSLog(@"stopped");
 }
 
-- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag
-{
-  NSLog(@"recording saved: %@", recorderFilePath);
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
+- (void)playback:(CDVInvokedUrlCommand*)command {
+  _command = command;
+  [self.commandDelegate runInBackground:^{
+    NSLog(@"recording playback");
+    NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
+    NSError *err;
+    player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&err];
+    player.numberOfLoops = 0;
+    player.delegate = self;
+    [player prepareToPlay];
+    [player play];
+    if (err) {
+      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    }
+    NSLog(@"playing");
+  }];
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+  NSLog(@"audioPlayerDidFinishPlaying");
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"];
   [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+}
+
+- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag {
+  NSURL *url = [NSURL fileURLWithPath: recorderFilePath];
+  NSError *err = nil;
+  NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
+  if(!audioData) {
+    NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+  } else {
+    NSLog(@"recording saved: %@", recorderFilePath);
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+  }
 }
 
 @end

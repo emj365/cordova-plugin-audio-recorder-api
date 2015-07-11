@@ -5,13 +5,13 @@
   NSString *recorderFilePath;
   NSNumber *duration;
   AVAudioRecorder *recorder;
+  AVAudioPlayer *player;
   CDVPluginResult *pluginResult;
   CDVInvokedUrlCommand *_command;
 }
 
-@property(assign) id<AVAudioRecorderDelegate> delegate;
-
 - (void)record:(CDVInvokedUrlCommand*)command;
 - (void)stop:(CDVInvokedUrlCommand*)command;
+- (void)playback:(CDVInvokedUrlCommand*)command;
 
 @end
