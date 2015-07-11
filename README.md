@@ -28,16 +28,29 @@ How to use:
 var recorder = new Object;
 recorder.stop = function() {
   window.plugins.audioRecorderAPI.stop(function(msg) {
+    // success
     alert('ok: ' + msg);
   }, function(msg) {
+    // failed
     alert('ko: ' + msg);
   });
 }
 recorder.record = function() {
-  window.plugins.audioRecorderAPI.stop(function(msg) {
+  window.plugins.audioRecorderAPI.record(function(msg) {
+    // complete
     alert('ok: ' + msg);
   }, function(msg) {
+    // failed
     alert('ko: ' + msg);
   }, 30); // record 30 seconds
+}
+recorder.playback = function() {
+  window.plugins.audioRecorderAPI.playback(function(msg) {
+    // complete
+    alert('ok: ' + msg);
+  }, function(msg) {
+    // failed
+    alert('ko: ' + msg);
+  });
 }
 ```
