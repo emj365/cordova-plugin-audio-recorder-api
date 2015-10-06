@@ -3,7 +3,7 @@
 
 @implementation AudioRecorderAPI
 
-#define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
+#define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Library/NoCloud"]
 
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
