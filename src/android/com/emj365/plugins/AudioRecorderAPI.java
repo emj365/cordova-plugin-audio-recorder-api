@@ -25,12 +25,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
-    Integer seconds;
-    if (args.length() >= 1) {
-      seconds = args.getInt(0);
-    } else {
-      seconds = 7;
-    }
+
     if (action.equals("record")) {
       outputFile = context.getFilesDir().getAbsoluteFile() + "/"
         + UUID.randomUUID().toString() + ".m4a";
@@ -54,19 +49,10 @@ public class AudioRecorderAPI extends CordovaPlugin {
         });
         return false;
       }
-
-      countDowntimer = new CountDownTimer(seconds * 1000, 1000) {
-        public void onTick(long millisUntilFinished) {}
-        public void onFinish() {
-          stopRecord(callbackContext);
-        }
-      };
-      countDowntimer.start();
       return true;
     }
 
     if (action.equals("stop")) {
-      countDowntimer.cancel();
       stopRecord(callbackContext);
       return true;
     }
@@ -106,13 +92,19 @@ public class AudioRecorderAPI extends CordovaPlugin {
   }
 
   private void stopRecord(final CallbackContext callbackContext) {
-    myRecorder.stop();
-    myRecorder.release();
-    cordova.getThreadPool().execute(new Runnable() {
-      public void run() {
-        callbackContext.success(outputFile);
-      }
-    });
+	
+	try{
+		myRecorder.stop();
+		myRecorder.release();
+		cordova.getThreadPool().execute(new Runnable() {
+		  public void run() {
+			callbackContext.success(outputFile);
+		  }
+		});
+	}catch(Exception e){
+
+	}
+    
   }
 
 }
