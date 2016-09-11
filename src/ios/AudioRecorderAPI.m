@@ -21,6 +21,7 @@
     }
     err = nil;
     [audioSession setActive:YES error:&err];
+    UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker; AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof (audioRouteOverride),&audioRouteOverride);
     if (err)
     {
       NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
