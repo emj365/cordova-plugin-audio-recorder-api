@@ -29,7 +29,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
     if (args.length() >= 1) {
       seconds = args.getInt(0);
     } else {
-      seconds = 7;
+      seconds = 0;
     }
     if (action.equals("record")) {
       outputFile = context.getFilesDir().getAbsoluteFile() + "/"
@@ -55,18 +55,22 @@ public class AudioRecorderAPI extends CordovaPlugin {
         return false;
       }
 
-      countDowntimer = new CountDownTimer(seconds * 1000, 1000) {
-        public void onTick(long millisUntilFinished) {}
-        public void onFinish() {
-          stopRecord(callbackContext);
-        }
-      };
-      countDowntimer.start();
+      if(seconds > 0) {
+        countDowntimer = new CountDownTimer(seconds * 1000, 1000) {
+          public void onTick(long millisUntilFinished) {}
+          public void onFinish() {
+            stopRecord(callbackContext);
+          }
+        };
+        countDowntimer.start();
+      }
       return true;
     }
 
     if (action.equals("stop")) {
-      countDowntimer.cancel();
+      if(countDowntimer != null) {
+        countDowntimer.cancel();
+      }
       stopRecord(callbackContext);
       return true;
     }
@@ -106,13 +110,21 @@ public class AudioRecorderAPI extends CordovaPlugin {
   }
 
   private void stopRecord(final CallbackContext callbackContext) {
-    myRecorder.stop();
-    myRecorder.release();
-    cordova.getThreadPool().execute(new Runnable() {
-      public void run() {
-        callbackContext.success(outputFile);
-      }
-    });
+    try {
+      myRecorder.stop();
+      myRecorder.release();
+      cordova.getThreadPool().execute(new Runnable() {
+        public void run() {
+          callbackContext.success(outputFile);
+        }
+      });
+    } catch (final Exception e) {
+      cordova.getThreadPool().execute(new Runnable() {
+        public void run() {
+          callbackContext.error(e.getMessage());
+        }
+      });
+    }
   }
 
 }
