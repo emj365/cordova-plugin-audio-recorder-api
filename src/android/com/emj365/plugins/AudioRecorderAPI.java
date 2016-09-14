@@ -11,26 +11,53 @@ import android.media.AudioManager;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.content.Context;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import java.util.UUID;
 import java.io.FileInputStream;
 import java.io.File;
 import java.io.IOException;
 
-public class AudioRecorderAPI extends CordovaPlugin {
-
+public class AudioRecorderAPI extends CordovaPlugin {  
   private MediaRecorder myRecorder;
   private String outputFile;
   private CountDownTimer countDowntimer;
+  
+  private CallbackContext myCallbackContext;
+ 
+  public static final int P_REC_AUDIO = 0; 	
+  public static final int P_MOD_AUDIO = 1;
+  public static final int P_READ_PHONE = 2;
+  
+  public String [] permissionArray = {
+            Manifest.permission.RECORD_AUDIO,
+			Manifest.permission.MODIFY_AUDIO_SETTINGS,
+			Manifest.permission.READ_PHONE_STATE};
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
     Integer seconds;
+	myCallbackContext=callbackContext;
     if (args.length() >= 1) {
       seconds = args.getInt(0);
     } else {
       seconds = 7;
     }
+	
+	if (action.equals("doPermissions"))
+	{		
+		for( int i = 0; i < permissionArray.length - 1; i++)
+		{			
+			if (!cordova.hasPermission(permissionArray[i]))
+			{
+				 cordova.requestPermission(this, i, permissionArray[i]);
+			}
+		}
+
+		return true;
+	}
+	
     if (action.equals("record")) {
       outputFile = context.getFilesDir().getAbsoluteFile() + "/"
         + UUID.randomUUID().toString() + ".m4a";
@@ -102,7 +129,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
       return true;
     }
 
-    return false;
+    return false;	
   }
 
   private void stopRecord(final CallbackContext callbackContext) {
@@ -113,6 +140,18 @@ public class AudioRecorderAPI extends CordovaPlugin {
         callbackContext.success(outputFile);
       }
     });
+  }
+  
+  public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) throws JSONException {
+        for(int r:grantResults)
+        {
+            if(r == PackageManager.PERMISSION_DENIED)
+            {
+				myCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.ERROR, "PERMS_REFUSED"));
+				return;
+            }
+        }
+		myCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "PERMS_GRANTED"));		
   }
 
 }

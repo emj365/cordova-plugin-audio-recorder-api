@@ -1,3 +1,4 @@
+cordova.define("cordova-plugin-audio-recorder-api.AudioRecorderAPI", function(require, exports, module) {
 function AudioRecorderAPI() {
 }
 
@@ -13,6 +14,10 @@ AudioRecorderAPI.prototype.playback = function (successCallback, errorCallback) 
   cordova.exec(successCallback, errorCallback, "AudioRecorderAPI", "playback", []);
 };
 
+AudioRecorderAPI.prototype.dopermissions = function (successCallback, errorCallback) {
+    cordova.exec(successCallback, errorCallback, "AudioRecorderAPI", "doPermissions", []);
+};
+
 AudioRecorderAPI.install = function () {
   if (!window.plugins) {
     window.plugins = {};
@@ -22,3 +27,5 @@ AudioRecorderAPI.install = function () {
 };
 
 cordova.addConstructor(AudioRecorderAPI.install);
+
+});
