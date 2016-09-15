@@ -28,7 +28,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
   private CountDownTimer  countDowntimer  = null;
   private Integer         seconds         = 0;
   private Integer         sampleRate      = 44100;
-  private Integer         bitRate         = 32000;
+  private Integer         bitRate         = 118000;
 
 
 
@@ -47,14 +47,14 @@ public class AudioRecorderAPI extends CordovaPlugin {
     else                    { sampleRate = 44100; }
 
     if (args.length() >= 3) { bitRate = args.getInt(2); }
-    else                    { bitRate = 32000; }
+    else                    { bitRate = 118000; }
 
 
 
 
     if (action.equals("record")) {
       try {
-        outputFile      = context.getFilesDir().getAbsoluteFile() + "/" + UUID.randomUUID().toString() + ".m4a";
+        outputFile      = context.getExternalFilesDir(null).getAbsoluteFile() + "/" + UUID.randomUUID().toString() + ".m4a";
         myRecorder      = new MediaRecorder();
         countDowntimer  = new CountDownTimer(seconds * 1000, 1000) {
           public void onTick(long millisUntilFinished) {}

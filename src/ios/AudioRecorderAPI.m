@@ -18,7 +18,7 @@
   else                                  { sampleRate = @44100; }
 
   if([_command.arguments count] > 2)    { bitRate = [_command.arguments objectAtIndex:2]; }
-  else                                  { bitRate = @32000; }
+  else                                  { bitRate = @118000; }
 
 
 
@@ -36,7 +36,7 @@
 
     // UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker; AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof (audioRouteOverride),&audioRouteOverride);
 
-    NSMutableDictionary *recordSettings = [[NSMutableDictionary alloc] init];
+    NSMutableDictionary * recordSettings = [[NSMutableDictionary alloc] init];
     [recordSettings setObject:[NSNumber numberWithInt: kAudioFormatMPEG4AAC] forKey: AVFormatIDKey];
     [recordSettings setObject:[NSNumber numberWithInt: AVAudioQualityMax] forKey: AVEncoderAudioQualityKey];
     [recordSettings setObject:sampleRate forKey: AVSampleRateKey];
