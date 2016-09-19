@@ -39,20 +39,17 @@ public class AudioRecorderAPI extends CordovaPlugin {
 
 
 
-
-    if (args.length() >= 1) { seconds = args.getInt(0); }
-    else                    { seconds = 0; }
-
-    if (args.length() >= 2) { sampleRate = args.getInt(1); }
-    else                    { sampleRate = 44100; }
-
-    if (args.length() >= 3) { bitRate = args.getInt(2); }
-    else                    { bitRate = 118000; }
-
-
-
-
     if (action.equals("record")) {
+
+      if (args.length() >= 1) { seconds = args.getInt(0); }
+      else                    { seconds = 0; }
+
+      if (args.length() >= 2) { sampleRate = args.getInt(1); }
+      else                    { sampleRate = 44100; }
+
+      if (args.length() >= 3) { bitRate = args.getInt(2); }
+      else                    { bitRate = 118000; }
+
       try {
         outputFile      = context.getExternalFilesDir(null).getAbsoluteFile() + "/" + UUID.randomUUID().toString() + ".m4a";
         myRecorder      = new MediaRecorder();
@@ -95,6 +92,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
 
 
     if (action.equals("stop")) {
+
       try {
         cordova.getThreadPool().execute(new Runnable() {
           public void run() {
@@ -171,6 +169,8 @@ public class AudioRecorderAPI extends CordovaPlugin {
 
 
 
+    // Unknown action
+
     return false;
   }
 
@@ -181,8 +181,11 @@ public class AudioRecorderAPI extends CordovaPlugin {
     try {
       cordova.getThreadPool().execute(new Runnable() {
         public void run() {
-          myRecorder.stop();
-          myRecorder.release();
+          if (myRecorder != null) {
+            myRecorder.stop();
+            myRecorder.release();
+            myRecorder = null;
+          }
 
           callbackContext.success(outputFile);
         }

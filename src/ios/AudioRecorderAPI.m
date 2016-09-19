@@ -29,10 +29,7 @@
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
 
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
-    if(err) { NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]); err = nil; }
-
     [audioSession setActive:YES error:&err];
-    if(err) { NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]); err = nil; }
 
     // UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker; AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof (audioRouteOverride),&audioRouteOverride);
 
@@ -45,19 +42,17 @@
 
     NSString *uuid = [[NSUUID UUID] UUIDString];
     outputFile = [NSString stringWithFormat:@"%@/%@.m4a", RECORDINGS_FOLDER, uuid];
-    NSLog(@"recording file path: %@", outputFile);
 
     NSURL *url = [NSURL fileURLWithPath:outputFile];
 
     myRecorder = [[AVAudioRecorder alloc] initWithURL:url settings:recordSettings error:&err];
-    if(!myRecorder) { NSLog(@"myRecorder: %@ %d %@", [err domain], [err code], [[err userInfo] description]); return; }
+    if(!myRecorder) { return; }
 
     [myRecorder setDelegate:(id)self];
+    [myRecorder prepareToRecord];
 
-    if(![myRecorder prepareToRecord]) { NSLog(@"prepareToRecord failed"); return; }
-
-    if(seconds > 0) { if(![myRecorder recordForDuration:(NSTimeInterval)[seconds intValue]]) { NSLog(@"recordForDuration failed"); return; } }
-    else            { if(![myRecorder record]) { NSLog(@"record failed"); return; } }
+    if(seconds > 0) { [myRecorder recordForDuration:(NSTimeInterval)[seconds intValue]]; }
+    else            { [myRecorder record]; }
   }];
 }
 
@@ -67,11 +62,8 @@
 - (void)stop:(CDVInvokedUrlCommand*)command {
   _command = command;
 
-  NSLog(@"stopRecording");
-
-  if(myRecorder) { [myRecorder stop]; }
-
-  NSLog(@"stopped");
+  if(myRecorder)    { [myRecorder stop]; }
+  if(myPlayer)      { [myPlayer stop]; }
 }
 
 
@@ -82,8 +74,6 @@
 
   [self.commandDelegate runInBackground:^{
     NSError * err = nil;
-
-    NSLog(@"recording playback");
 
     NSURL *url = [NSURL fileURLWithPath:outputFile];
 
@@ -96,8 +86,6 @@
     [myPlayer prepareToPlay];
     [myPlayer play];
 
-    if(err) { NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]); return; }
-
     NSLog(@"playing");
   }];
 }
@@ -105,29 +93,23 @@
 
 
 
-- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)myPlayer successfully:(BOOL)flag {
-  NSLog(@"audioPlayerDidFinishPlaying");
+- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)myRecorder successfully:(BOOL)flag {
+  NSError * err         = nil;
+  NSURL *   url         = [NSURL fileURLWithPath: outputFile];
+  NSData *  audioData   = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
 
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+  if(audioData) {
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFile];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+  }
 }
 
 
 
 
-- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)myRecorder successfully:(BOOL)flag {
-  NSError * err = nil;
-
-  NSLog(@"audioRecorderDidFinishRecording");
-
-  NSURL *url = [NSURL fileURLWithPath: outputFile];
-
-  NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
-  if(audioData) {
-    NSLog(@"recording saved: %@", outputFile);
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFile];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
-  } else { NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]); }
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)myPlayer successfully:(BOOL)flag {
+  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"];
+  [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
 }
 
 @end
