@@ -52,9 +52,17 @@ recorder.playback = function() {
     alert('ko: ' + msg);
   });
 }
+window.plugins.audioRecorderAPI.dopermissions(function (msg) {
+		    // success
+		    console.log('Audio permissions ok: ' + msg);
+		}, function (msg) {
+		    // failed
+		    console.error("audioRecorderAPI: permission not granted");
+		    alert("The app needs access to your microphone to function.");
+		});
 ```
 
-Where are files save?
+Where are files saved?
 ---------------------
 
 iOS: `/var/mobile/Applications/<UUID>/Library/NoCloud/<file-id>.m4a`
