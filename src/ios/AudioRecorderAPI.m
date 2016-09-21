@@ -16,15 +16,22 @@
     NSError *err;
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
     if (err)
-    {
-      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    {      
+	  NSLog(@"AVAudioSession error AVAudioSessionCategoryPlayAndRecord:%@",err);
     }
-    err = nil;
+	
+	err = nil;
     [audioSession setActive:YES error:&err];
-    UInt32 audioRouteOverride = kAudioSessionOverrideAudioRoute_Speaker; AudioSessionSetProperty (kAudioSessionProperty_OverrideAudioRoute, sizeof (audioRouteOverride),&audioRouteOverride);
     if (err)
-    {
-      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    {     
+	  NSLog(@"AVAudioSession error setActive:%@",err);
+    }
+
+     err = nil;
+    [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker error:&err];
+    if (err)
+    {     
+	  NSLog(@"AVAudioSession error overrideOutputAudioPort:%@",err);
     }
 
     NSMutableDictionary *recordSettings = [[NSMutableDictionary alloc] init];
