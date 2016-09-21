@@ -10,18 +10,15 @@ This plugin is a Cordova audio recorder plugin that works as API.
 
 Different than http://plugins.cordova.io/#/package/org.apache.cordova.media-capture this plugin does not request the native recorder app (system default recorder) and active recording manually.
 
+**This is a fork of https://github.com/emj365/cordova-plugin-audio-recorder-api. This fork adds support for Android 6.0+ permissions and increases the quality of the iOS recording. 
+
+Without the Android 6.0+ permission fix, an error of "setAudioSource failed" occurs when recording is attempted.**
+
 Supports platforms:
 --------------------
 
 - iOS
 - Android
-
-Install:
----------
-
-```bash
-$ cordova plugin add cordova-plugin-audio-recorder-api
-```
 
 How to use:
 ------------
