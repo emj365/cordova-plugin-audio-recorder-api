@@ -97,11 +97,13 @@
   NSURL *url = [NSURL fileURLWithPath: recorderFilePath];
   NSError *err = nil;
   NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
+  AVURLAsset* audioAsset = [AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:recorderFilePath] options:nil];
+  int audioDuration = CMTimeGetSeconds(audioAsset.duration);
   if(!audioData) {
     NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
   } else {
-    NSLog(@"recording saved: %@", recorderFilePath);
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
+    NSLog(@"recording saved: %@ %d", recorderFilePath, audioDuration);
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{@"path": recorderFilePath, @"duration": [NSNumber numberWithInt:audioDuration]}];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
   }
 }

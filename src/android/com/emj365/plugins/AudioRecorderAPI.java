@@ -4,6 +4,7 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.json.JSONException;
 import android.media.MediaRecorder;
 import android.media.MediaPlayer;
@@ -21,11 +22,12 @@ public class AudioRecorderAPI extends CordovaPlugin {
   private MediaRecorder myRecorder;
   private String outputFile;
   private CountDownTimer countDowntimer;
+  private Integer seconds;
+  private Integer duration;
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
-    Integer seconds;
     if (args.length() >= 1) {
       seconds = args.getInt(0);
     } else {
@@ -56,7 +58,9 @@ public class AudioRecorderAPI extends CordovaPlugin {
       }
 
       countDowntimer = new CountDownTimer(seconds * 1000, 1000) {
-        public void onTick(long millisUntilFinished) {}
+        public void onTick(long millisUntilFinished) {
+          duration = seconds - (int) millisUntilFinished / 1000;
+        }
         public void onFinish() {
           stopRecord(callbackContext);
         }
@@ -110,9 +114,18 @@ public class AudioRecorderAPI extends CordovaPlugin {
     myRecorder.release();
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
-        callbackContext.success(outputFile);
+        try {
+          callbackContext.success(composeCallback());
+        } catch (JSONException e) {
+          callbackContext.error(e.getMessage());
+        }
       }
     });
+  }
+
+  private JSONObject composeCallback() throws JSONException {
+    String json = "{ path: '" + outputFile + "', duration: " + duration + " }";
+    return new JSONObject(json);
   }
 
 }
