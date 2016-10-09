@@ -39,16 +39,18 @@ public class AudioRecorderAPI extends CordovaPlugin {
       myRecorder.setOutputFile(outputFile);
 
       try {
-        myRecorder.prepare();
-        myRecorder.start();
+		myRecorder.prepare();
+		myRecorder.start();
       } catch (final Exception e) {
-        cordova.getThreadPool().execute(new Runnable() {
-          public void run() {
-            callbackContext.error(e.getMessage());
-          }
-        });
+        //cordova.getThreadPool().execute(new Runnable() {
+        //  public void run() {
+        //    callbackContext.error("未获得授权使用摄像头，请在设置中打开");
+        //  }
+        //});
+		callbackContext.error("未获得授权使用麦克风，请在设置中打开");
         return false;
       }
+	  callbackContext.success("recordSuccess");
       return true;
     }
 
