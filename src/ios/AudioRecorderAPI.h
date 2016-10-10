@@ -9,8 +9,10 @@
   NSNumber *                seconds;
   NSNumber *                sampleRate;
   NSNumber *                bitRate;
-  CDVPluginResult *         pluginResult;
-  CDVInvokedUrlCommand *    _command;
+
+  CDVInvokedUrlCommand *    _recordCommand;
+  CDVInvokedUrlCommand *    _stopCommand;
+  CDVInvokedUrlCommand *    _playBackCommand;
 }
 
 - (void)record:(CDVInvokedUrlCommand*)command;
