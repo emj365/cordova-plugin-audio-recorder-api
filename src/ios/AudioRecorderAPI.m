@@ -3,107 +3,189 @@
 
 @implementation AudioRecorderAPI
 
+
+
+
 #define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Library/NoCloud"]
 
-- (void)record:(CDVInvokedUrlCommand*)command {
-  _command = command;
-  duration = [_command.arguments objectAtIndex:0];
 
-  [self.commandDelegate runInBackground:^{
 
-    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
 
-    NSError *err;
-    [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
-    if (err)
-    {
-      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+- (void)init:(CDVInvokedUrlCommand*)command {
+  NSLog(@"init");
+
+  NSError * err = nil;
+
+  AVAudioSession * audioSession = [AVAudioSession sharedInstance];
+  [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
+  if (err)
+  {
+    NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+  }
+
+  [audioSession setActive:YES error:&err];
+  if (err)
+  {
+    NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
+  }
+
+  [audioSession requestRecordPermission:^(BOOL granted) {
+    if (granted) {
+      NSLog(@"Microphone access granted");
+      [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK] callbackId:command.callbackId];
     }
-    err = nil;
-    [audioSession setActive:YES error:&err];
-    if (err)
-    {
-      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+    else {
+      NSLog(@"Microphone access denied");
+      [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:command.callbackId];
     }
-
-    NSMutableDictionary *recordSettings = [[NSMutableDictionary alloc] init];
-    [recordSettings setObject:[NSNumber numberWithInt: kAudioFormatMPEG4AAC] forKey: AVFormatIDKey];
-    [recordSettings setObject:[NSNumber numberWithFloat:8000.0] forKey: AVSampleRateKey];
-    [recordSettings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
-    [recordSettings setObject:[NSNumber numberWithInt:12000] forKey:AVEncoderBitRateKey];
-    [recordSettings setObject:[NSNumber numberWithInt:8] forKey:AVLinearPCMBitDepthKey];
-    [recordSettings setObject:[NSNumber numberWithInt: AVAudioQualityLow] forKey: AVEncoderAudioQualityKey];
-
-    // Create a new dated file
-    NSString *uuid = [[NSUUID UUID] UUIDString];
-    recorderFilePath = [NSString stringWithFormat:@"%@/%@.m4a", RECORDINGS_FOLDER, uuid];
-    NSLog(@"recording file path: %@", recorderFilePath);
-
-    NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
-    err = nil;
-    recorder = [[AVAudioRecorder alloc] initWithURL:url settings:recordSettings error:&err];
-    if(!recorder){
-      NSLog(@"recorder: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
-      return;
-    }
-
-    [recorder setDelegate:self];
-
-    if (![recorder prepareToRecord]) {
-      NSLog(@"prepareToRecord failed");
-      return;
-    }
-
-    if (![recorder recordForDuration:(NSTimeInterval)[duration intValue]]) {
-      NSLog(@"recordForDuration failed");
-      return;
-    }
-
   }];
 }
 
+
+
+
+- (void)record:(CDVInvokedUrlCommand*)command {
+  NSLog(@"record");
+
+  [self.commandDelegate runInBackground:^{
+    NSError * err = nil;
+
+    _recordCommand = command;
+
+    if([command.arguments count] > 0)   { seconds = [command.arguments objectAtIndex:0]; }
+    else                                { seconds = @0; }
+
+    if([command.arguments count] > 1)   { sampleRate = [command.arguments objectAtIndex:1]; }
+    else                                { sampleRate = @44100; }
+
+    if([command.arguments count] > 2)   { bitRate = [command.arguments objectAtIndex:2]; }
+    else                                { bitRate = @118000; }
+
+    NSLog(@"Recording %d seconds at %d / %d", [seconds intValue], [sampleRate intValue], [bitRate intValue]);
+
+    NSMutableDictionary * recordSettings = [[NSMutableDictionary alloc] init];
+    [recordSettings setObject:[NSNumber numberWithInt: kAudioFormatMPEG4AAC] forKey: AVFormatIDKey];
+    [recordSettings setObject:[NSNumber numberWithInt: AVAudioQualityMax] forKey: AVEncoderAudioQualityKey];
+    [recordSettings setObject:sampleRate forKey: AVSampleRateKey];
+    [recordSettings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
+    [recordSettings setObject:bitRate forKey:AVEncoderBitRateKey];
+
+    NSString * uuid = [[NSUUID UUID] UUIDString];
+    outputFile = [NSString stringWithFormat:@"%@/%@.m4a", RECORDINGS_FOLDER, uuid];
+
+    NSLog(@"recording file path: %@", outputFile);
+
+    NSURL * url = [NSURL fileURLWithPath:outputFile];
+
+    myRecorder = [[AVAudioRecorder alloc] initWithURL:url settings:recordSettings error:&err];
+    if(!myRecorder){
+      NSLog(@"recorder error: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+      return;
+    }
+
+    [myRecorder setDelegate:(id)self];
+    [myRecorder prepareToRecord];
+
+    if(seconds > 0) { [myRecorder recordForDuration:(NSTimeInterval)[seconds intValue]]; }
+    else            { [myRecorder record]; }
+
+    NSLog(@"recording");
+  }];
+}
+
+
+
+
 - (void)stop:(CDVInvokedUrlCommand*)command {
-  _command = command;
-  NSLog(@"stopRecording");
-  [recorder stop];
+  NSLog(@"stop");
+
+  _stopCommand = command;
+
+  if(myRecorder)    { [myRecorder stop]; }
+  if(myPlayer)      { [myPlayer stop]; }
+
   NSLog(@"stopped");
 }
 
+
+
+
 - (void)playback:(CDVInvokedUrlCommand*)command {
-  _command = command;
+  NSLog(@"playback");
+
   [self.commandDelegate runInBackground:^{
-    NSLog(@"recording playback");
-    NSURL *url = [NSURL fileURLWithPath:recorderFilePath];
-    NSError *err;
-    player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&err];
-    player.numberOfLoops = 0;
-    player.delegate = self;
-    [player prepareToPlay];
-    [player play];
+    NSError * err = nil;
+
+    _playBackCommand = command;
+
+    NSURL * url = [NSURL fileURLWithPath:outputFile];
+
+    myPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:&err];
     if (err) {
       NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+      return;
     }
+
+    myPlayer.numberOfLoops = 0;
+
+    [myPlayer setDelegate:(id)self];
+    [myPlayer prepareToPlay];
+    [myPlayer play];
+
     NSLog(@"playing");
   }];
 }
 
-- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+
+
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)myPlayer successfully:(BOOL)flag {
   NSLog(@"audioPlayerDidFinishPlaying");
-  pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"];
-  [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+
+  [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"playbackComplete"] callbackId:_playBackCommand.callbackId];
+
+  _stopCommand = nil;
+
+  NSLog(@"Playback finished");
 }
 
-- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag {
-  NSURL *url = [NSURL fileURLWithPath: recorderFilePath];
-  NSError *err = nil;
+- (void)audioRecorderDidFinishRecording:(AVAudioRecorder *)myRecorder successfully:(BOOL)flag {
+  NSLog(@"audioRecorderDidFinishRecording");
+
+  NSError *         err             = nil;
+  NSURL *           url             = [NSURL fileURLWithPath: outputFile];
   NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
   if(!audioData) {
     NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
-  } else {
-    NSLog(@"recording saved: %@", recorderFilePath);
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+
+    if (_stopCommand) {
+      NSLog(@"End of recording was from stop");
+      [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:_stopCommand.callbackId];
+    } else {
+      NSLog(@"End of recording was from record with duration");
+      [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR] callbackId:_recordCommand.callbackId];
+    }
+
+    return;
   }
+
+  NSLog(@"recording saved: %@", outputFile);
+
+  if (_stopCommand) {
+    NSLog(@"End of recording was from stop");
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFile] callbackId:_stopCommand.callbackId];
+  } else {
+    NSLog(@"End of recording was from record with duration");
+    [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:outputFile] callbackId:_recordCommand.callbackId];
+  }
+
+  _stopCommand   = nil;
+  _recordCommand = nil;
+
+  NSLog(@"Record finished");
 }
+
 
 @end

@@ -14,105 +14,192 @@ import android.content.Context;
 import java.util.UUID;
 import java.io.FileInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+
+
+
 
 public class AudioRecorderAPI extends CordovaPlugin {
 
-  private MediaRecorder myRecorder;
-  private String outputFile;
-  private CountDownTimer countDowntimer;
+  private MediaRecorder   myRecorder      = null;
+  private MediaPlayer     myPlayer        = null;
+  private String          outputFile      = null;
+  private CountDownTimer  countDowntimer  = null;
+  private Integer         seconds         = 0;
+  private Integer         sampleRate      = 44100;
+  private Integer         bitRate         = 118000;
+
+
+
 
   @Override
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
-    Integer seconds;
-    if (args.length() >= 1) {
-      seconds = args.getInt(0);
-    } else {
-      seconds = 7;
+
+
+
+
+    if (action.equals("init")) {
+      return true;
     }
+
+
+
+
     if (action.equals("record")) {
-      outputFile = context.getFilesDir().getAbsoluteFile() + "/"
-        + UUID.randomUUID().toString() + ".m4a";
-      myRecorder = new MediaRecorder();
-      myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-      myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-      myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-      myRecorder.setAudioSamplingRate(44100);
-      myRecorder.setAudioChannels(1);
-      myRecorder.setAudioEncodingBitRate(32000);
-      myRecorder.setOutputFile(outputFile);
+
+      if (args.length() >= 1) { seconds = args.getInt(0); }
+      else                    { seconds = 0; }
+
+      if (args.length() >= 2) { sampleRate = args.getInt(1); }
+      else                    { sampleRate = 44100; }
+
+      if (args.length() >= 3) { bitRate = args.getInt(2); }
+      else                    { bitRate = 118000; }
 
       try {
-        myRecorder.prepare();
-        myRecorder.start();
+        outputFile      = context.getFilesDir().getAbsoluteFile() + "/" + UUID.randomUUID().toString() + ".m4a";
+        myRecorder      = new MediaRecorder();
+        countDowntimer  = new CountDownTimer(seconds * 1000, 1000) {
+          public void onTick(long millisUntilFinished) {}
+          public void onFinish() { stopRecord(callbackContext); }
+        };
+
+        cordova.getThreadPool().execute(new Runnable() {
+          public void run() {
+            myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            myRecorder.setAudioSamplingRate(sampleRate);
+            myRecorder.setAudioChannels(1);
+            myRecorder.setAudioEncodingBitRate(bitRate);
+            myRecorder.setOutputFile(outputFile);
+
+            try {
+              myRecorder.prepare();
+            } catch (final IOException e) {
+              callbackContext.error(e.getMessage());
+            }
+
+            myRecorder.start();
+
+            if(seconds > 0) { countDowntimer.start(); }
+          }
+        });
+      } catch (final Exception e) {
+        cordova.getThreadPool().execute(new Runnable() {
+          public void run() { callbackContext.error(e.getMessage()); }
+        });
+      }
+
+      return true;
+    }
+
+
+
+
+    if (action.equals("stop")) {
+
+      try {
+        cordova.getThreadPool().execute(new Runnable() {
+          public void run() {
+            if(countDowntimer != null) {
+              countDowntimer.cancel();
+              countDowntimer = null;
+            }
+
+            stopRecord(callbackContext);
+          }
+        });
       } catch (final Exception e) {
         cordova.getThreadPool().execute(new Runnable() {
           public void run() {
             callbackContext.error(e.getMessage());
           }
         });
-        return false;
       }
 
-      countDowntimer = new CountDownTimer(seconds * 1000, 1000) {
-        public void onTick(long millisUntilFinished) {}
-        public void onFinish() {
-          stopRecord(callbackContext);
-        }
-      };
-      countDowntimer.start();
       return true;
     }
 
-    if (action.equals("stop")) {
-      countDowntimer.cancel();
-      stopRecord(callbackContext);
-      return true;
-    }
+
+
 
     if (action.equals("playback")) {
-      MediaPlayer mp = new MediaPlayer();
-      mp.setAudioStreamType(AudioManager.STREAM_MUSIC);
       try {
-        FileInputStream fis = new FileInputStream(new File(outputFile));
-        mp.setDataSource(fis.getFD());
-      } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (SecurityException e) {
-        e.printStackTrace();
-      } catch (IllegalStateException e) {
-        e.printStackTrace();
-      } catch (IOException e) {
-        e.printStackTrace();
+        myPlayer = new MediaPlayer();
+
+        cordova.getThreadPool().execute(new Runnable() {
+          public void run() {
+            FileInputStream fis = null;
+
+            myPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+            myPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+              public void onCompletion(MediaPlayer mp) {
+                callbackContext.success("playbackComplete");
+              }
+            });
+
+            try {
+              fis = new FileInputStream(new File(outputFile));
+            } catch (final FileNotFoundException e) {
+              callbackContext.error(e.getMessage());
+            }
+
+            try {
+              myPlayer.setDataSource(fis.getFD());
+            } catch (final IOException e) {
+              callbackContext.error(e.getMessage());
+            }
+
+            try {
+              myPlayer.prepare();
+            } catch (final IOException e) {
+              callbackContext.error(e.getMessage());
+            }
+
+            myPlayer.start();
+          }
+        });
+      } catch (final Exception e) {
+        cordova.getThreadPool().execute(new Runnable() {
+          public void run() {
+            callbackContext.error(e.getMessage());
+          }
+        });
       }
-      try {
-        mp.prepare();
-      } catch (IllegalStateException e) {
-        e.printStackTrace();
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        public void onCompletion(MediaPlayer mp) {
-          callbackContext.success("playbackComplete");
-        }
-      });
-      mp.start();
+
       return true;
     }
 
     return false;
   }
 
+
+
+
   private void stopRecord(final CallbackContext callbackContext) {
-    myRecorder.stop();
-    myRecorder.release();
-    cordova.getThreadPool().execute(new Runnable() {
-      public void run() {
-        callbackContext.success(outputFile);
-      }
-    });
+    try {
+      cordova.getThreadPool().execute(new Runnable() {
+        public void run() {
+          if (myRecorder != null) {
+            myRecorder.stop();
+            myRecorder.release();
+            myRecorder = null;
+          }
+
+          callbackContext.success(outputFile);
+        }
+      });
+    } catch (final Exception e) {
+      cordova.getThreadPool().execute(new Runnable() {
+        public void run() {
+          callbackContext.error(e.getMessage());
+        }
+      });
+    }
   }
 
 }
