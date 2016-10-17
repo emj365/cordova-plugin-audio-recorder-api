@@ -39,6 +39,14 @@ public class AudioRecorderAPI extends CordovaPlugin {
 
 
 
+
+    if (action.equals("init")) {
+      return true;
+    }
+
+
+
+
     if (action.equals("record")) {
 
       if (args.length() >= 1) { seconds = args.getInt(0); }
