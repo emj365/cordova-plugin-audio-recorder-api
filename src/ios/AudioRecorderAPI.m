@@ -1,5 +1,6 @@
 #import "AudioRecorderAPI.h"
 #import <Cordova/CDV.h>
+#import <AVFoundation/AVFoundation.h>
 
 @implementation AudioRecorderAPI
 
@@ -17,6 +18,25 @@
         }
     return bSession;
 }
+
+//申请录音权限
+- (void)requestPermission:(CDVInvokedUrlCommand*)command {
+    _command = command;
+
+    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+        if (granted){// 用户同意授权
+
+        }else {// 用户拒绝授权
+          CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
+          [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+        }
+    }];
+
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"false"];
+	[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+}
+
+
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
   duration = [_command.arguments objectAtIndex:0];
