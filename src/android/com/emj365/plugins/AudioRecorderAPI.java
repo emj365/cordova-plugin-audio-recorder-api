@@ -3,6 +3,8 @@ package com.emj365.plugins;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.PluginResult;
+import org.apache.cordova.PermissionHelper;
+import android.Manifest;
 import org.json.JSONArray;
 import org.json.JSONException;
 import android.media.MediaRecorder;
@@ -26,32 +28,49 @@ public class AudioRecorderAPI extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
 
-    if (action.equals("record")) {
-      outputFile = context.getFilesDir().getAbsoluteFile() + "/"
-        + UUID.randomUUID().toString() + ".m4a";
-      myRecorder = new MediaRecorder();
-      myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-      myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-      myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-      myRecorder.setAudioSamplingRate(44100);
-      myRecorder.setAudioChannels(1);
-      myRecorder.setAudioEncodingBitRate(32000);
-      myRecorder.setOutputFile(outputFile);
-
-      try {
-		myRecorder.prepare();
-		myRecorder.start();
-      } catch (final Exception e) {
-        //cordova.getThreadPool().execute(new Runnable() {
-        //  public void run() {
-        //    callbackContext.error("未获得授权使用摄像头，请在设置中打开");
-        //  }
-        //});
-		callbackContext.error("未获得授权使用麦克风，请在设置中打开");
+    if (action.equals("getPermission")) {
+	    //检查是否有录音权限
+      try{
+        if(PermissionHelper.hasPermission(this, Manifest.permission.RECORD_AUDIO)){
+          callbackContext.success("true");
+        }else{
+          PermissionHelper.requestPermission(this, 0, Manifest.permission.RECORD_AUDIO);
+          callbackContext.success("false");
+        }
+      }catch(Exception e){
+        callbackContext.error("未获得授权使用麦克风，请在设置中打开");
         return false;
       }
-	  callbackContext.success("recordSuccess");
       return true;
+    }
+
+    if (action.equals("record")) {
+      if(!PermissionHelper.hasPermission(this, Manifest.permission.RECORD_AUDIO)){
+        PermissionHelper.requestPermission(this, 0, Manifest.permission.RECORD_AUDIO);
+        callbackContext.error("未获得授权使用麦克风，请在设置中打开");
+        return false;
+      }else{
+        try {
+              outputFile = context.getFilesDir().getAbsoluteFile() + "/"
+                + UUID.randomUUID().toString() + ".m4a";
+              myRecorder = new MediaRecorder();
+              myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+              myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+              myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+              myRecorder.setAudioSamplingRate(44100);
+              myRecorder.setAudioChannels(1);
+              myRecorder.setAudioEncodingBitRate(32000);
+              myRecorder.setOutputFile(outputFile);
+              myRecorder.prepare();
+              myRecorder.start();
+        } catch (final Exception e) {
+          callbackContext.error("未获得授权使用麦克风，请在设置中打开");
+          return false;
+        }
+        callbackContext.success("recordSuccess");
+      }
+
+      return false;
     }
 
     if (action.equals("stop")) {
