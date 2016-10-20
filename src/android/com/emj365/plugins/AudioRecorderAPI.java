@@ -28,7 +28,7 @@ public class AudioRecorderAPI extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) throws JSONException {
     Context context = cordova.getActivity().getApplicationContext();
 
-    if (action.equals("getPermission")) {
+    if (action.equals("requestPermission")) {
 	    //检查是否有录音权限
       try{
         if(PermissionHelper.hasPermission(this, Manifest.permission.RECORD_AUDIO)){
