@@ -29,6 +29,11 @@
     </config-file>
     <header-file src="src/ios/AudioRecorderAPI.h"/>
     <source-file src="src/ios/AudioRecorderAPI.m"/>
+    
+     <preference name="MICROPHONE_USAGE_DESCRIPTION" default=" " />
+         <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
+             <string>$MICROPHONE_USAGE_DESCRIPTION</string>
+         </config-file>
   </platform>
 
   <!-- android -->
