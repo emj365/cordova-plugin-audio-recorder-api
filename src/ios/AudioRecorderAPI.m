@@ -7,7 +7,12 @@
 
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
-  duration = [_command.arguments objectAtIndex:0];
+  if ([_command.arguments count] > 0) {
+    duration = [_command.arguments objectAtIndex:0];
+  }
+  else {
+    duration = nil;
+  }
 
   [self.commandDelegate runInBackground:^{
 
@@ -53,10 +58,17 @@
       NSLog(@"prepareToRecord failed");
       return;
     }
-
-    if (![recorder recordForDuration:(NSTimeInterval)[duration intValue]]) {
-      NSLog(@"recordForDuration failed");
-      return;
+    if (duration == nil || duration.integerValue == -1) {
+      if (![recorder record]) {
+        NSLog(@"record failed");
+        return;
+      }
+    }
+    else {
+      if (![recorder recordForDuration:(NSTimeInterval)[duration intValue]]) {
+        NSLog(@"recordForDuration failed");
+        return;
+      }
     }
 
   }];
@@ -107,3 +119,4 @@
 }
 
 @end
+
