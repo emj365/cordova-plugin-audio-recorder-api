@@ -60,16 +60,16 @@ recorder.playback = function() {
 Where are files save?
 ---------------------
 
-iOS: `/var/mobile/Applications/<UUID>/Library/NoCloud/<file-id>.m4a`
-Android: `/data/data/<app-id>/files/<file-id>.m4a`
+- iOS: `/var/mobile/Applications/<UUID>/Library/NoCloud/<file-id>.m4a`
+- Android: `/data/data/<app-id>/files/<file-id>.m4a`
 
 Copy File to Another Place
 ----------------------------
 
 Example with file plugin: http://ngcordova.com/docs/plugins/file/
 
-iOS: `/var/mobile/Applications/<UUID>/Documents/new_file.m4a`
-Android: `<sdcard>/new_file.m4a`
+- iOS: `/var/mobile/Applications/<UUID>/Documents/new_file.m4a`
+- Android: `<sdcard>/new_file.m4a`
 
 ```javascript
 window.plugins.audioRecorderAPI.record(function(savedFilePath) {
