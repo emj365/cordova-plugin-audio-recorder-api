@@ -114,9 +114,9 @@ public class AudioRecorderAPI extends CordovaPlugin {
     myRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
     myRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
     myRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-    myRecorder.setAudioSamplingRate(44100);
+    myRecorder.setAudioSamplingRate(8000.0);
     myRecorder.setAudioChannels(1);
-    myRecorder.setAudioEncodingBitRate(32000);
+    myRecorder.setAudioEncodingBitRate(12000);
     myRecorder.setOutputFile(outputFile);
 
     try {
