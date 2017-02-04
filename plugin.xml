@@ -27,6 +27,9 @@
         <param name="ios-package" value="AudioRecorderAPI"/>
       </feature>
     </config-file>
+    <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
+        <string>Microhphone is needed to record dications</string>
+    </config-file>
     <header-file src="src/ios/AudioRecorderAPI.h"/>
     <source-file src="src/ios/AudioRecorderAPI.m"/>
     

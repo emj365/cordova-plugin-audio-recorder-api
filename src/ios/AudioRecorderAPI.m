@@ -3,11 +3,16 @@
 
 @implementation AudioRecorderAPI
 
-#define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Library/NoCloud"]
+#define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"]
 
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
-  duration = [_command.arguments objectAtIndex:0];
+  if ([_command.arguments count] > 0) {
+    duration = [_command.arguments objectAtIndex:0];
+  }
+  else {
+    duration = nil;
+  }
 
   [self.commandDelegate runInBackground:^{
 
@@ -32,7 +37,7 @@
     [recordSettings setObject:[NSNumber numberWithInt:1] forKey:AVNumberOfChannelsKey];
     [recordSettings setObject:[NSNumber numberWithInt:12000] forKey:AVEncoderBitRateKey];
     [recordSettings setObject:[NSNumber numberWithInt:8] forKey:AVLinearPCMBitDepthKey];
-    [recordSettings setObject:[NSNumber numberWithInt: AVAudioQualityLow] forKey: AVEncoderAudioQualityKey];
+    [recordSettings setObject:[NSNumber numberWithInt: AVAudioQualityMedium] forKey: AVEncoderAudioQualityKey];
 
     // Create a new dated file
     NSString *uuid = [[NSUUID UUID] UUIDString];
@@ -53,10 +58,17 @@
       NSLog(@"prepareToRecord failed");
       return;
     }
-
-    if (![recorder recordForDuration:(NSTimeInterval)[duration intValue]]) {
-      NSLog(@"recordForDuration failed");
-      return;
+    if (duration == nil || duration.integerValue == -1) {
+      if (![recorder record]) {
+        NSLog(@"record failed");
+        return;
+      }
+    }
+    else {
+      if (![recorder recordForDuration:(NSTimeInterval)[duration intValue]]) {
+        NSLog(@"recordForDuration failed");
+        return;
+      }
     }
 
   }];
@@ -107,3 +119,4 @@
 }
 
 @end
+
