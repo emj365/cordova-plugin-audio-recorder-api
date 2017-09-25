@@ -1,5 +1,5 @@
 {
-  "version": "0.0.1",
+  "version": "0.0.6",
   "name": "cordova-plugin-audio-recorder-api",
   "cordova_name": "AudioRecorderAPI",
   "description": "This plugin is a Cordova audio recorder plugin which works as API.",
@@ -27,7 +27,7 @@
     "ecosystem:cordova",
     "cordova-android"
   ],
-  "author": "lingusocial",
+  "author": "emj365",
   "bugs": {
     "url": "https://github.com/marcelgoya/cordova-plugin-audio-recorder-api/issues"
   },
