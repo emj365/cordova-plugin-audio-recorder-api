@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/emj365/cordova-plugin-audio-recorder-api.git"
+    "url": "git+https://github.com/marcelgoya/cordova-plugin-audio-recorder-api.git"
   },
   "keywords": [
     "ecosystem:cordova",
@@ -29,7 +29,7 @@
   ],
   "author": "emj365",
   "bugs": {
-    "url": "https://github.com/emj365/cordova-plugin-audio-recorder-api/issues"
+    "url": "https://github.com/marcelgoya/cordova-plugin-audio-recorder-api/issues"
   },
-  "homepage": "https://github.com/emj365/cordova-plugin-audio-recorder-api#readme"
+  "homepage": "https://github.com/marcelgoya/cordova-plugin-audio-recorder-api#readme"
 }

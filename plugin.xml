@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         id="cordova-plugin-audio-recorder-api"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        version="0.0.1">
+        version="0.0.6">
 
   <name>AudioRecorderAPI</name>
 
@@ -29,7 +29,7 @@
     </config-file>
     <header-file src="src/ios/AudioRecorderAPI.h"/>
     <source-file src="src/ios/AudioRecorderAPI.m"/>
-    
+
      <preference name="MICROPHONE_USAGE_DESCRIPTION" default=" " />
          <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
              <string>$MICROPHONE_USAGE_DESCRIPTION</string>
