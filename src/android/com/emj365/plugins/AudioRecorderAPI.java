@@ -1,31 +1,25 @@
 package com.emj365.plugins;
 
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaArgs;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.PluginResult;
-import org.apache.cordova.PermissionHelper;
-
 import android.Manifest;
+import android.content.Context;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
+import android.os.Build;
+import android.os.CountDownTimer;
 
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.PermissionHelper;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
-import android.media.MediaPlayer;
-import android.media.AudioManager;
-import android.os.Build;
-import android.os.CountDownTimer;
-import android.os.Environment;
-import android.content.Context;
-import android.support.v4.app.ActivityCompat;
-
-import java.util.UUID;
-import java.io.FileInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 public class AudioRecorderAPI extends CordovaPlugin {
 
