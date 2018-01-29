@@ -10,6 +10,7 @@
   CDVInvokedUrlCommand *_command;
 }
 
+- (void)requestPermission:(CDVInvokedUrlCommand*)command;
 - (void)record:(CDVInvokedUrlCommand*)command;
 - (void)stop:(CDVInvokedUrlCommand*)command;
 - (void)playback:(CDVInvokedUrlCommand*)command;

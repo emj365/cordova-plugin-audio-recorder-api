@@ -1,13 +1,61 @@
 #import "AudioRecorderAPI.h"
 #import <Cordova/CDV.h>
+#import <AVFoundation/AVFoundation.h>
 
 @implementation AudioRecorderAPI
 
 #define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Library/NoCloud"]
 
+- (BOOL)hasAudioSession
+{
+    BOOL bSession = YES;
+	NSError* error = nil;
+        AVAudioSession* avSession = [AVAudioSession sharedInstance];
+        if (error) {
+            // is not fatal if can't get AVAudioSession , just log the error
+            NSLog(@"error creating audio session: %@", [[error userInfo] description]);
+            bSession = NO;
+        }
+    return bSession;
+}
+
+//申请录音权限
+- (void)requestPermission:(CDVInvokedUrlCommand*)command {
+    _command = command;
+
+    [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted) {
+        if (granted){// 用户同意授权
+
+        }else {// 用户拒绝授权
+          CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
+          [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+        }
+    }];
+
+  CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"false"];
+	[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+}
+
+
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
   duration = [_command.arguments objectAtIndex:0];
+  //判断麦克风权限
+  SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
+  if ([self hasAudioSession])
+  {
+	#pragma clang diagnostic push
+	#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+	AVAudioSession* avSession = [AVAudioSession sharedInstance];
+    [avSession performSelector:rrpSel withObject:^(BOOL granted){
+		if (!granted) {
+			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
+			[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+		}
+    }];
+	#pragma clang diagnostic pop
+  }
+   //end权限判断
 
   [self.commandDelegate runInBackground:^{
 
@@ -15,6 +63,7 @@
 
     NSError *err;
     [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord error:&err];
+	
     if (err)
     {
       NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
@@ -59,6 +108,9 @@
       return;
     }
 
+	CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"success"];
+	[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+
   }];
 }
 
@@ -98,7 +150,10 @@
   NSError *err = nil;
   NSData *audioData = [NSData dataWithContentsOfFile:[url path] options: 0 error:&err];
   if(!audioData) {
-    NSLog(@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]);
+	NSString *errorInfo = [NSString stringWithFormat:@"audio data: %@ %d %@", [err domain], [err code], [[err userInfo] description]];
+    NSLog(errorInfo);
+	pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"录音失败"];
+	[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
   } else {
     NSLog(@"recording saved: %@", recorderFilePath);
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];

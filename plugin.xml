@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         id="cordova-plugin-audio-recorder-api"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        version="0.0.1">
+        version="0.0.3">
 
   <name>AudioRecorderAPI</name>
 
@@ -12,8 +12,10 @@
 
   <license>MIT</license>
 
+  <dependency id="cordova-plugin-compat" version=">=1.0.0" />
+  
   <engines>
-    <engine name="cordova" version=">=3.0.0"/>
+    <engine name="cordova" version=">=6.0.0"/>
   </engines>
 
   <js-module src="www/AudioRecorderAPI.js" name="AudioRecorderAPI">
