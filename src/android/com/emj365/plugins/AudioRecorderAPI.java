@@ -46,15 +46,20 @@ public class AudioRecorderAPI extends CordovaPlugin {
     }
 	
 	if (action.equals("doPermissions"))
-	{		
+	{
+                boolean hasRequested = false;		
 		for( int i = 0; i < permissionArray.length - 1; i++)
 		{			
 			if (!cordova.hasPermission(permissionArray[i]))
 			{
 				 cordova.requestPermission(this, i, permissionArray[i]);
+                                 hasRequested = true;
 			}
 		}
-
+                if (hasRequested == false) {
+                    callbackContext.success();
+                    myCallbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "PERMS_GRANTED"));
+                }
 		return true;
 	}
 	
