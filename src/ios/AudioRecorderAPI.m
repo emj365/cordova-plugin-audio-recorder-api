@@ -8,7 +8,6 @@
 - (void)record:(CDVInvokedUrlCommand*)command {
   _command = command;
   duration = [_command.arguments objectAtIndex:0];
-
   [self.commandDelegate runInBackground:^{
 
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
@@ -89,7 +88,7 @@
     [player prepareToPlay];
     [player play];
     if (err) {
-      NSLog(@"%@ %d %@", [err domain], [err code], [[err userInfo] description]);
+      NSLog(@"%@ %d %@", [err domain], (int)[err code], [[err userInfo] description]);
     }
     NSLog(@"playing");
   }];
@@ -112,6 +111,32 @@
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:recorderFilePath];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
   }
+}
+
+- (void)doPermissions:(CDVInvokedUrlCommand*)command {
+    _command = command;
+    AVAudioSessionRecordPermission permissionStatus = [[AVAudioSession sharedInstance] recordPermission];
+    switch (permissionStatus) {
+        
+        case AVAudioSessionRecordPermissionUndetermined:
+        case AVAudioSessionRecordPermissionDenied:
+        case AVAudioSessionRecordPermissionGranted:
+            [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
+                if (granted) {
+                    // Microphone enabled code
+                    NSLog(@"Microphone enabled code@");
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"permissionGranted"];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+                }
+                else {
+                    // Microphone disabled code
+                    NSLog(@"Microphone disabled code@");
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"permissionDenied"];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+                }
+            }];
+        break;
+    }
 }
 
 @end
