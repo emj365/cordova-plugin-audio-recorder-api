@@ -1,5 +1,6 @@
 #import <Cordova/CDV.h>
 #import <AVFoundation/AVFoundation.h>
+#import <AudioToolbox/AudioServices.h>
 
 @interface AudioRecorderAPI : CDVPlugin {
   NSString *recorderFilePath;

@@ -13,6 +13,10 @@ AudioRecorderAPI.prototype.playback = function (successCallback, errorCallback) 
   cordova.exec(successCallback, errorCallback, "AudioRecorderAPI", "playback", []);
 };
 
+AudioRecorderAPI.prototype.dopermissions = function (successCallback, errorCallback) {
+    cordova.exec(successCallback, errorCallback, "AudioRecorderAPI", "doPermissions", []);
+};
+
 AudioRecorderAPI.install = function () {
   if (!window.plugins) {
     window.plugins = {};
