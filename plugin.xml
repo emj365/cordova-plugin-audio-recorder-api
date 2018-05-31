@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         id="cordova-plugin-audio-recorder-api"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        version="0.0.3">
+        version="0.0.4">
 
   <name>AudioRecorderAPI</name>
 
@@ -31,6 +31,11 @@
     </config-file>
     <header-file src="src/ios/AudioRecorderAPI.h"/>
     <source-file src="src/ios/AudioRecorderAPI.m"/>
+
+    <preference name="MICROPHONE_USAGE_DESCRIPTION" default="需要您的麦克风发送语音消息或记录语音信息" />
+    <config-file target="*-Info.plist" parent="NSMicrophoneUsageDescription">
+      <string>$MICROPHONE_USAGE_DESCRIPTION</string>
+    </config-file>
   </platform>
 
   <!-- android -->
