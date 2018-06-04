@@ -2,7 +2,7 @@
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
         id="cordova-plugin-audio-recorder-api"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        version="0.0.7">
+        version="0.0.8">
 
   <name>AudioRecorderAPI</name>
 

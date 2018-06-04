@@ -6,17 +6,33 @@
 
 #define RECORDINGS_FOLDER [NSHomeDirectory() stringByAppendingPathComponent:@"Library/NoCloud"]
 
-- (BOOL)hasAudioSession
+- (BOOL)hasAudioPermission
 {
-    BOOL bSession = YES;
-	NSError* error = nil;
-        AVAudioSession* avSession = [AVAudioSession sharedInstance];
-        if (error) {
-            // is not fatal if can't get AVAudioSession , just log the error
-            NSLog(@"error creating audio session: %@", [[error userInfo] description]);
-            bSession = NO;
-        }
-    return bSession;
+    AVAuthorizationStatus videoAuthStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+    if (videoAuthStatus == AVAuthorizationStatusNotDetermined) {// 未询问用户是否授权
+        //第一次询问用户是否进行授权
+        [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {
+            if (granted) {
+                // Microphone enabled code
+            }
+            else {
+                // Microphone disabled code
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+            }
+        }];
+    }
+    else if(videoAuthStatus == AVAuthorizationStatusRestricted || videoAuthStatus == AVAuthorizationStatusDenied) {
+        // 未授权
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
+        return NO;
+    }
+    else{
+        // 已授权
+        return YES;
+    }
+    return NO;
 }
 
 //申请录音权限
@@ -41,19 +57,9 @@
   _command = command;
   duration = [_command.arguments objectAtIndex:0];
   //判断麦克风权限
-  SEL rrpSel = NSSelectorFromString(@"requestRecordPermission:");
-  if ([self hasAudioSession])
+  if (![self hasAudioPermission])
   {
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-	AVAudioSession* avSession = [AVAudioSession sharedInstance];
-    [avSession performSelector:rrpSel withObject:^(BOOL granted){
-		if (!granted) {
-			CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"未获得授权使用麦克风，请在设置中打开"];
-			[self.commandDelegate sendPluginResult:pluginResult callbackId:_command.callbackId];
-		}
-    }];
-	#pragma clang diagnostic pop
+	return;
   }
    //end权限判断
 

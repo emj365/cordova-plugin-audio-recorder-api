@@ -1,5 +1,5 @@
 {
-  "version": "0.0.7",
+  "version": "0.0.8",
   "name": "cordova-plugin-audio-recorder-api",
   "cordova_name": "AudioRecorderAPI",
   "description": "This plugin is a Cordova audio recorder plugin which works as API.",
